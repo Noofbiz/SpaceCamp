@@ -13,13 +13,6 @@ type sprite struct {
 	common.RenderComponent
 }
 
-type selection struct {
-	ecs.BasicEntity
-	common.SpaceComponent
-	common.RenderComponent
-	systems.CursorComponent
-}
-
 type audio struct {
 	ecs.BasicEntity
 	common.AudioComponent
@@ -31,10 +24,10 @@ type playerSelectableSprite struct {
 	common.RenderComponent
 }
 
-type selectionsceneswitch struct {
+type selection struct {
 	ecs.BasicEntity
 	common.SpaceComponent
 	common.RenderComponent
 	systems.CursorComponent
-	systems.SceneSwitchComponent
+	systems.SelectComponent
 }
