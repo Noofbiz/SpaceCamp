@@ -29,5 +29,20 @@ type selection struct {
 	common.SpaceComponent
 	common.RenderComponent
 	systems.CursorComponent
-	systems.SelectComponent
+}
+
+type selectionsceneswitch struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	systems.CursorComponent
+	systems.SceneSwitchComponent
+}
+
+type jobSelection struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	systems.CursorComponent
+	systems.JobSelectComponent
 }

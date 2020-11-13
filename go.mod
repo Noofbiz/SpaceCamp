@@ -6,6 +6,7 @@ require (
 	github.com/EngoEngine/ecs v1.0.5
 	github.com/EngoEngine/engo v1.0.6-0.20200813134554-7c650958219e
 	github.com/EngoEngine/gl v1.0.11
+	github.com/Noofbiz/hypnic v0.0.0-20190408043245-23cb9d2194e9
 	github.com/Noofbiz/pixelshader v0.0.0-20200807183531-e0439b7ebf4b
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200707082815-5321531c36a2

@@ -147,11 +147,11 @@ func (*TitleScene) Setup(u engo.Updater) {
 	var curSys systems.CursorSystem
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
-	var selectable *systems.SelectAble
-	var notselectable *systems.NotSelectAble
-	w.AddSystemInterface(&systems.SelectSystem{}, selectable, notselectable)
+	var selectable *systems.SceneSwitchAble
+	var notselectable *systems.NotSceneSwitchAble
+	w.AddSystemInterface(&systems.SceneSwitchSystem{}, selectable, notselectable)
 
-	common.SetBackground(color.RGBA{R: 0xd8, G: 0xee, B: 0xff, A: 0xff})
+	common.SetBackground(color.RGBA{R: 0x43, G: 0x46, B: 0x4b, A: 0xff})
 
 	bgm := audio{BasicEntity: ecs.NewBasic()}
 	bgmPlayer, _ := common.LoadedPlayer(files[2])
@@ -190,7 +190,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 	titleText.Scale = engo.Point{X: 1.5, Y: 1.5}
 	w.AddEntity(&titleText)
 
-	startText := selection{BasicEntity: ecs.NewBasic()}
+	startText := selectionsceneswitch{BasicEntity: ecs.NewBasic()}
 	startText.Drawable = common.Text{
 		Text: "start",
 		Font: selFont,
@@ -198,11 +198,8 @@ func (*TitleScene) Setup(u engo.Updater) {
 	startText.SetZIndex(1)
 	startText.SetCenter(engo.Point{X: 66, Y: 75})
 	startText.Selected = true
-	startText.ACallback = func() {
-		//engo.SetSceneByName("start", true)
-		log.Println("Start")
-	}
-	startText.BCallback = func() {}
+	startText.To = "New Game Scene"
+	startText.NewWorld = true
 	w.AddEntity(&startText)
 
 	optionsText := selection{BasicEntity: ecs.NewBasic()}
@@ -212,10 +209,6 @@ func (*TitleScene) Setup(u engo.Updater) {
 	}
 	optionsText.SetZIndex(1)
 	optionsText.SetCenter(engo.Point{X: 66, Y: 100})
-	optionsText.ACallback = func() {
-		log.Println("Options")
-	}
-	optionsText.BCallback = func() {}
 	w.AddEntity(&optionsText)
 
 	creditsText := selection{BasicEntity: ecs.NewBasic()}
@@ -225,10 +218,6 @@ func (*TitleScene) Setup(u engo.Updater) {
 	}
 	creditsText.SetZIndex(1)
 	creditsText.SetCenter(engo.Point{X: 66, Y: 125})
-	creditsText.ACallback = func() {
-		log.Println("Credits")
-	}
-	creditsText.BCallback = func() {}
 	w.AddEntity(&creditsText)
 
 	fsText := sprite{BasicEntity: ecs.NewBasic()}

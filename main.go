@@ -8,6 +8,8 @@ import (
 
 func main() {
 	title := scenes.TitleScene{}
+	engo.RegisterScene(&title)
+	engo.RegisterScene(&scenes.NewGameScene{})
 	engo.Run(engo.RunOptions{
 		Title:                      "To INFINITY!!!",
 		Width:                      640, //512, //16

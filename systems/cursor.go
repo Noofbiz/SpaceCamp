@@ -141,7 +141,7 @@ func (s *CursorSystem) setPointer(i int) {
 	ent := s.entities[i]
 	s.ptr.Hidden = false
 	s.ptr.Position.X = ent.Position.X - s.ptr.Width - 2
-	s.ptr.Position.Y = ent.Position.Y + (ent.Height / 2) + 6
+	s.ptr.Position.Y = ent.Position.Y + (ent.Height / 2) + 2
 }
 
 type CursorFace interface {
