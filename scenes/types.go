@@ -39,10 +39,20 @@ type selectionsceneswitch struct {
 	systems.SceneSwitchComponent
 }
 
-type jobSelection struct {
+type character struct {
+	ecs.BasicEntity
+	systems.JobSelectComponent
+}
+
+type animation struct {
 	ecs.BasicEntity
 	common.SpaceComponent
 	common.RenderComponent
-	systems.CursorComponent
-	systems.JobSelectComponent
+	common.AnimationComponent
+}
+
+type shopItem struct {
+	ecs.BasicEntity
+	systems.ShopItemSelectComponent
+	systems.ShopPurchaseComponent
 }

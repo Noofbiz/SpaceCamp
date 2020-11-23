@@ -19,6 +19,14 @@ func (m CombatLogMessage) Type() string {
 	return "CombatLogMessage"
 }
 
+type CombatLogDoneMessage struct {
+	Done bool
+}
+
+func (m *CombatLogDoneMessage) Type() string {
+	return "Combat Log Done Message"
+}
+
 type CombatLogSystem struct {
 	lock                                      sync.RWMutex
 	log                                       []CombatLogMessage
@@ -109,6 +117,16 @@ func (s *CombatLogSystem) New(w *ecs.World) {
 		defer s.lock.Unlock()
 		s.log = append(s.log, msg)
 	})
+
+	engo.Mailbox.Listen("Combat Log Done Message", func(message engo.Message) {
+		msg, ok := message.(*CombatLogDoneMessage)
+		if !ok {
+			return
+		}
+		s.lock.Lock()
+		defer s.lock.Unlock()
+		msg.Done = s.done && s.idx >= len(s.log)-1
+	})
 }
 
 func (s *CombatLogSystem) Remove(basic ecs.BasicEntity) {}
@@ -133,10 +151,6 @@ func (s *CombatLogSystem) Update(dt float32) {
 			txt := s.line1.Drawable.(common.Text)
 			txt.Font = s.log[s.idx].Fnt
 			txt.Text = ""
-			if !s.log[s.idx].Clip.IsPlaying() {
-				s.log[s.idx].Clip.Rewind()
-				s.log[s.idx].Clip.Play()
-			}
 			s.line1.Drawable = txt
 			s.moved = true
 			txt2 := s.line2.Drawable.(common.Text)
@@ -154,8 +168,12 @@ func (s *CombatLogSystem) Update(dt float32) {
 			txt.Text = s.log[s.idx].Msg[:s.charAt]
 			s.line1.Drawable = txt
 			s.elapsed = 0
+			if !s.log[s.idx].Clip.IsPlaying() {
+				s.log[s.idx].Clip.Rewind()
+				s.log[s.idx].Clip.Play()
+			}
 		}
-		if engo.Input.Button("A").JustPressed() {
+		if engo.Input.Button("Y").JustPressed() {
 			txt := s.line1.Drawable.(common.Text)
 			txt.Text = s.log[s.idx].Msg
 			s.line1.Drawable = txt

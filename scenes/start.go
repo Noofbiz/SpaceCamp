@@ -14,32 +14,37 @@ import (
 	"github.com/Noofbiz/pixelshader"
 )
 
-type NewGameScene struct{}
+type NewGameScene struct {
+	files []string
+}
 
 func (*NewGameScene) Type() string { return "New Game Scene" }
 
-var NGFiles = []string{
-	"title/PressStart.ttf",
-	"title/cursor.png",
-	"start/starting.mp3",
-	"start/dots.png",
-	"start/logs.png",
-	"start/log.wav",
-	"start/jobSelect.png",
-	"start/atk.png",
-	"start/def.png",
-	"start/spd.png",
-	"start/spc.png",
-	// "start/spc_chef.png",
-	// "start/spc_mechanic.png",
-	// "start/spc_medic.png",
-	// "start/spc_pilot.png",
-	// "start/spc_security.png",
-	// "start/spc_exo.png",
-}
-
 func (s *NewGameScene) Preload() {
-	for _, file := range NGFiles {
+	s.files = []string{
+		"title/PressStart.ttf",
+		"title/cursor.png",
+		"start/starting.mp3",
+		"start/dots.png",
+		"start/logs.png",
+		"start/log.wav",
+		"start/jobSelect.png",
+		"start/atk.png",
+		"start/def.png",
+		"start/spd.png",
+		"start/spc.png",
+		"start/spc_chef.png",
+		"start/spc_mechanic.png",
+		"start/spc_medic.png",
+		"start/spc_pilot.png",
+		"start/spc_security.png",
+		"start/spc_exo.png",
+		"start/af.png",
+		"start/co.png",
+		"start/dl.png",
+		"start/sp.png",
+	}
+	for _, file := range s.files {
 		data, err := assets.Asset(file)
 		if err != nil {
 			log.Fatalf("Unable to locate asset with URL: %v\n", file)
@@ -57,11 +62,10 @@ func (s *NewGameScene) Preload() {
 	engo.Input.RegisterButton("B", engo.KeyK)
 	engo.Input.RegisterButton("X", engo.KeyL)
 	engo.Input.RegisterButton("Y", engo.KeySemicolon)
-	engo.Input.RegisterButton("FullScreen", engo.KeyFour)
 	engo.Input.RegisterButton("Exit", engo.KeyEscape)
 }
 
-func (*NewGameScene) Setup(u engo.Updater) {
+func (s *NewGameScene) Setup(u engo.Updater) {
 	w := u.(*ecs.World)
 
 	var renderable *common.Renderable
@@ -72,16 +76,17 @@ func (*NewGameScene) Setup(u engo.Updater) {
 	var notaudioable *common.NotAudioable
 	w.AddSystemInterface(&common.AudioSystem{}, audioable, notaudioable)
 
+	w.AddSystem(&systems.LogFinishedSetSceneSystem{})
+	w.AddSystem(&systems.ExitSystem{})
+	w.AddSystem(&common.FPSSystem{Display: true})
+
 	w.AddSystem(&systems.CombatLogSystem{
-		BackgroundURL: NGFiles[4],
-		DotURL:        NGFiles[3],
-		FontURL:       NGFiles[0],
-		LineDelay:     1,
+		BackgroundURL: s.files[4],
+		DotURL:        s.files[3],
+		FontURL:       s.files[0],
+		LineDelay:     0.3,
 		LetterDelay:   0.1,
 	})
-
-	w.AddSystem(&systems.FullScreenSystem{})
-	w.AddSystem(&systems.ExitSystem{})
 
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
@@ -90,10 +95,16 @@ func (*NewGameScene) Setup(u engo.Updater) {
 
 	selFont := &common.Font{
 		Size: 64,
-		FG:   color.White,
-		URL:  NGFiles[0],
+		FG:   color.Black,
+		URL:  s.files[0],
 	}
 	selFont.CreatePreloaded()
+
+	acceptSys := systems.AcceptSystem{Fnt: selFont}
+	w.AddSystem(&acceptSys)
+
+	nameSys := systems.NameSelectSystem{Fnt: selFont, MaxLen: 12}
+	w.AddSystem(&nameSys)
 
 	var jobselectable *systems.JobSelectAble
 	var notjobselectable *systems.NotJobSelectAble
@@ -104,79 +115,79 @@ func (*NewGameScene) Setup(u engo.Updater) {
 	common.SetBackground(color.RGBA{R: 0x43, G: 0x46, B: 0x4b, A: 0xff})
 
 	bgm := audio{BasicEntity: ecs.NewBasic()}
-	bgmPlayer, _ := common.LoadedPlayer(NGFiles[2])
+	bgmPlayer, _ := common.LoadedPlayer(s.files[2])
 	bgm.AudioComponent = common.AudioComponent{Player: bgmPlayer}
 	bgmPlayer.Repeat = true
 	bgmPlayer.Play()
 	w.AddEntity(&bgm)
 
-	logPlayer, _ := common.LoadedPlayer(NGFiles[5])
+	logSnd := audio{BasicEntity: ecs.NewBasic()}
+	logPlayer, _ := common.LoadedPlayer(s.files[5])
+	logSnd.AudioComponent = common.AudioComponent{Player: logPlayer}
+	logSnd.AudioComponent.Player.SetVolume(0.25)
+	w.AddEntity(&logSnd)
+	jobSys.LogSnd = logPlayer
+	acceptSys.LogSnd = logPlayer
+	nameSys.LogSnd = logPlayer
 
 	bg := sprite{BasicEntity: ecs.NewBasic()}
 	bg.Drawable = pixelshader.PixelRegion{}
 	bg.SetShader(sShader)
 	w.AddEntity(&bg)
 
-	chefText := selection{BasicEntity: ecs.NewBasic()}
-	chefText.Drawable = common.Text{
-		Text: "Chef",
-		Font: selFont,
-	}
-	chefText.SetZIndex(2)
-	chefText.SetCenter(engo.Point{X: 130, Y: 120})
-	chefText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	chefText.Selected = true
-	w.AddEntity(&chefText)
+	chef := character{BasicEntity: ecs.NewBasic()}
+	chef.Atk = 3
+	chef.Def = 2
+	chef.Spd = 4
+	chef.Job = "Chef"
+	chef.SpecialName = "EGG:"
+	chef.SpecialURL = s.files[11]
+	w.AddEntity(&chef)
 
-	mechanicText := selection{BasicEntity: ecs.NewBasic()}
-	mechanicText.Drawable = common.Text{
-		Text: "Mecha",
-		Font: selFont,
-	}
-	mechanicText.SetZIndex(2)
-	mechanicText.SetCenter(engo.Point{X: 130, Y: 160})
-	mechanicText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	w.AddEntity(&mechanicText)
+	mechanic := character{BasicEntity: ecs.NewBasic()}
+	mechanic.Atk = 3
+	mechanic.Def = 3
+	mechanic.Spd = 1
+	mechanic.Job = "Mecha"
+	mechanic.SpecialName = "FIX:"
+	mechanic.SpecialURL = s.files[12]
+	w.AddEntity(&mechanic)
 
-	medicText := selection{BasicEntity: ecs.NewBasic()}
-	medicText.Drawable = common.Text{
-		Text: "Medic",
-		Font: selFont,
-	}
-	medicText.SetZIndex(2)
-	medicText.SetCenter(engo.Point{X: 130, Y: 200})
-	medicText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	w.AddEntity(&medicText)
+	medic := character{BasicEntity: ecs.NewBasic()}
+	medic.Atk = 2
+	medic.Def = 4
+	medic.Spd = 2
+	medic.Job = "Medic"
+	medic.SpecialName = "AID:"
+	medic.SpecialURL = s.files[13]
+	w.AddEntity(&medic)
 
-	pilotText := selection{BasicEntity: ecs.NewBasic()}
-	pilotText.Drawable = common.Text{
-		Text: "Pilot",
-		Font: selFont,
-	}
-	pilotText.SetZIndex(2)
-	pilotText.SetCenter(engo.Point{X: 130, Y: 240})
-	pilotText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	w.AddEntity(&pilotText)
+	pilot := character{BasicEntity: ecs.NewBasic()}
+	pilot.Atk = 4
+	pilot.Def = 3
+	pilot.Spd = 2
+	pilot.Job = "Pilot"
+	pilot.SpecialName = "FLY:"
+	pilot.SpecialURL = s.files[14]
+	w.AddEntity(&pilot)
 
-	securityText := selection{BasicEntity: ecs.NewBasic()}
-	securityText.Drawable = common.Text{
-		Text: "Defen",
-		Font: selFont,
-	}
-	securityText.SetZIndex(2)
-	securityText.SetCenter(engo.Point{X: 130, Y: 280})
-	securityText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	w.AddEntity(&securityText)
+	security := character{BasicEntity: ecs.NewBasic()}
+	security.Atk = 4
+	security.Def = 4
+	security.Spd = 1
+	security.Job = "Defen"
+	security.SpecialName = "GUN:"
+	security.SpecialURL = s.files[15]
+	w.AddEntity(&security)
 
-	exoText := selection{BasicEntity: ecs.NewBasic()}
-	exoText.Drawable = common.Text{
-		Text: "ExoBio",
-		Font: selFont,
-	}
-	exoText.SetZIndex(2)
-	exoText.SetCenter(engo.Point{X: 130, Y: 320})
-	exoText.Scale = engo.Point{X: 0.25, Y: 0.25}
-	w.AddEntity(&exoText)
+	exo := character{BasicEntity: ecs.NewBasic()}
+	exo.Atk = 2
+	exo.Def = 2
+	exo.Spd = 3
+	exo.Job = "ExoBio"
+	exo.SpecialName = "SCI:"
+	exo.SpecialURL = s.files[16]
+	w.AddEntity(&exo)
 
 	msgs := []string{
 		"You've been selected to lead",

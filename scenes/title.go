@@ -33,7 +33,7 @@ var sShader = &pixelshader.PixelShader{FragShader: `
 	#define iterations 17
 	#define formuparam 0.53
 
-	#define volsteps 20
+	#define volsteps 10
 	#define stepsize 0.1
 
 	#define zoom   0.800
@@ -93,20 +93,22 @@ var sShader = &pixelshader.PixelShader{FragShader: `
 	}
   `}
 
-type TitleScene struct{}
+type TitleScene struct {
+	files []string
+}
 
 func (*TitleScene) Type() string { return "Title Scene" }
 
-var files = []string{
-	"title/title.png",
-	"title/PressStart.ttf",
-	"title/parsec.mp3",
-	"title/cursor.png",
-}
-
 func (s *TitleScene) Preload() {
+	s.files = []string{
+		"title/title.png",
+		"title/PressStart.ttf",
+		"title/parsec.mp3",
+		"title/cursor.png",
+	}
 	common.AddShader(sShader)
-	for _, file := range files {
+	common.AddShader(wShader)
+	for _, file := range s.files {
 		data, err := assets.Asset(file)
 		if err != nil {
 			log.Fatalf("Unable to locate asset with URL: %v\n", file)
@@ -124,11 +126,11 @@ func (s *TitleScene) Preload() {
 	engo.Input.RegisterButton("B", engo.KeyK)
 	engo.Input.RegisterButton("X", engo.KeyL)
 	engo.Input.RegisterButton("Y", engo.KeySemicolon)
-	engo.Input.RegisterButton("FullScreen", engo.KeyFour)
+	engo.Input.RegisterButton("FullScreen", engo.KeyFour, engo.KeyF4)
 	engo.Input.RegisterButton("Exit", engo.KeyEscape)
 }
 
-func (*TitleScene) Setup(u engo.Updater) {
+func (s *TitleScene) Setup(u engo.Updater) {
 	w := u.(*ecs.World)
 
 	var renderable *common.Renderable
@@ -141,6 +143,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 
 	w.AddSystem(&systems.FullScreenSystem{})
 	w.AddSystem(&systems.ExitSystem{})
+	w.AddSystem(&common.FPSSystem{Display: true})
 
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
@@ -154,7 +157,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 	common.SetBackground(color.RGBA{R: 0x43, G: 0x46, B: 0x4b, A: 0xff})
 
 	bgm := audio{BasicEntity: ecs.NewBasic()}
-	bgmPlayer, _ := common.LoadedPlayer(files[2])
+	bgmPlayer, _ := common.LoadedPlayer(s.files[2])
 	bgm.AudioComponent = common.AudioComponent{Player: bgmPlayer}
 	bgmPlayer.Repeat = true
 	bgmPlayer.Play()
@@ -166,9 +169,9 @@ func (*TitleScene) Setup(u engo.Updater) {
 	w.AddEntity(&bg)
 
 	scene := sprite{BasicEntity: ecs.NewBasic()}
-	sceneTex, err := common.LoadedSprite(files[0])
+	sceneTex, err := common.LoadedSprite(s.files[0])
 	if err != nil {
-		log.Fatalf("Title Scene Setup. %v texture was not found. \nError was: %v\n", files[0], err)
+		log.Fatalf("Title Scene Setup. %v texture was not found. \nError was: %v\n", s.files[0], err)
 	}
 	scene.RenderComponent.Drawable = sceneTex
 	w.AddEntity(&scene)
@@ -176,7 +179,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 	selFont := &common.Font{
 		Size: 20,
 		FG:   color.White,
-		URL:  files[1],
+		URL:  s.files[1],
 	}
 	selFont.CreatePreloaded()
 
@@ -222,7 +225,7 @@ func (*TitleScene) Setup(u engo.Updater) {
 
 	fsText := sprite{BasicEntity: ecs.NewBasic()}
 	fsText.Drawable = common.Text{
-		Text: "press 4 to enable full screen!",
+		Text: "press F4 to enable full screen!",
 		Font: selFont,
 	}
 	fsText.SetZIndex(1)

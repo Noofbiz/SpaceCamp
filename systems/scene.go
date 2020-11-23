@@ -80,3 +80,41 @@ func (s *SceneSwitchSystem) Update(dt float32) {
 		}
 	}
 }
+
+type LogFinishedSetSceneMessage struct {
+	To       string
+	NewWorld bool
+}
+
+func (LogFinishedSetSceneMessage) Type() string { return "When Log Finished Set Scene" }
+
+type LogFinishedSetSceneSystem struct {
+	To       string
+	NewWorld bool
+}
+
+func (s *LogFinishedSetSceneSystem) New(w *ecs.World) {
+	engo.Mailbox.Listen("When Log Finished Set Scene", func(m engo.Message) {
+		msg, ok := m.(LogFinishedSetSceneMessage)
+		if !ok {
+			return
+		}
+		s.To = msg.To
+		s.NewWorld = msg.NewWorld
+	})
+}
+
+func (s *LogFinishedSetSceneSystem) Remove(basic ecs.BasicEntity) {}
+
+func (s *LogFinishedSetSceneSystem) Update(dt float32) {
+	if s.To != "" && s.logDone() {
+		engo.SetSceneByName(s.To, s.NewWorld)
+		s.To = ""
+	}
+}
+
+func (s *LogFinishedSetSceneSystem) logDone() bool {
+	msg := &CombatLogDoneMessage{}
+	engo.Mailbox.Dispatch(msg)
+	return msg.Done
+}

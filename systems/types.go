@@ -17,3 +17,10 @@ type selection struct {
 	common.RenderComponent
 	CursorComponent
 }
+
+type animation struct {
+	ecs.BasicEntity
+	common.SpaceComponent
+	common.RenderComponent
+	common.AnimationComponent
+}
