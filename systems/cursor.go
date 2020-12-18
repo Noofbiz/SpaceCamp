@@ -55,6 +55,9 @@ type CursorSystem struct {
 	entities []CursorEntity
 	ptr      *pointer
 	jump     int
+
+	clickSound    *common.Player
+	ClickSoundURL string
 }
 
 func (s *CursorSystem) New(w *ecs.World) {
@@ -70,6 +73,9 @@ func (s *CursorSystem) New(w *ecs.World) {
 	s.ptr.Height = s.ptr.Drawable.Height()
 	s.ptr.SetZIndex(100)
 	w.AddEntity(s.ptr)
+
+	s.clickSound, _ = common.LoadedPlayer(s.ClickSoundURL)
+
 	engo.Mailbox.Listen("Cursor Jump Set Message", func(msg engo.Message) {
 		m, ok := msg.(CursorJumpSetMessage)
 		if !ok {
@@ -137,6 +143,11 @@ func (s *CursorSystem) Update(dt float32) {
 	for i := 0; i < len(s.entities); i++ {
 		if s.entities[i].Selected {
 			if engo.Input.Button("right").JustPressed() {
+				if s.clickSound.IsPlaying() {
+					s.clickSound.Pause()
+				}
+				s.clickSound.Rewind()
+				s.clickSound.Play()
 				s.entities[i].Selected = false
 				if i+1 >= len(s.entities) && len(s.entities) > 0 {
 					s.entities[i].Selected = true
@@ -148,6 +159,11 @@ func (s *CursorSystem) Update(dt float32) {
 					return
 				}
 			} else if engo.Input.Button("left").JustPressed() {
+				if s.clickSound.IsPlaying() {
+					s.clickSound.Pause()
+				}
+				s.clickSound.Rewind()
+				s.clickSound.Play()
 				s.entities[i].Selected = false
 				if i-1 < 0 && len(s.entities) > 0 {
 					s.entities[i].Selected = true
@@ -160,6 +176,11 @@ func (s *CursorSystem) Update(dt float32) {
 				}
 			}
 			if engo.Input.Button("up").JustPressed() {
+				if s.clickSound.IsPlaying() {
+					s.clickSound.Pause()
+				}
+				s.clickSound.Rewind()
+				s.clickSound.Play()
 				s.entities[i].Selected = false
 				if i-s.jump < 0 && len(s.entities) > 0 {
 					s.entities[i].Selected = true
@@ -171,6 +192,11 @@ func (s *CursorSystem) Update(dt float32) {
 					return
 				}
 			} else if engo.Input.Button("down").JustPressed() {
+				if s.clickSound.IsPlaying() {
+					s.clickSound.Pause()
+				}
+				s.clickSound.Rewind()
+				s.clickSound.Play()
 				s.entities[i].Selected = false
 				if i+s.jump >= len(s.entities) && len(s.entities) > 0 {
 					s.entities[i].Selected = true

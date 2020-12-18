@@ -11,87 +11,7 @@ import (
 
 	"github.com/Noofbiz/SpaceCamp/assets"
 	"github.com/Noofbiz/SpaceCamp/systems"
-
-	"github.com/Noofbiz/pixelshader"
 )
-
-var sShader = &pixelshader.PixelShader{FragShader: `
-  #ifdef GL_ES
-  #define LOWP lowp
-  precision mediump float;
-  #else
-  #define LOWP
-  #endif
-  uniform vec2 u_resolution;  // Canvas size (width,height)
-  uniform vec2 u_mouse;       // mouse position in screen pixels
-  uniform float u_time;       // Time in seconds since load
-
-	// Star Nest by Pablo Roman Andrioli
-
-	// This content is under the MIT License.
-
-	#define iterations 17
-	#define formuparam 0.53
-
-	#define volsteps 10
-	#define stepsize 0.1
-
-	#define zoom   0.800
-	#define tile   0.850
-	#define speed  0.010
-
-	#define brightness 0.0006
-	#define darkmatter 0.400
-	#define distfading 0.730
-	#define saturation 0.850
-
-
-	void main()
-	{
-		//get coords and direction
-		vec2 uv=gl_FragCoord.xy/u_resolution.xy-.5;
-		uv.y*=u_resolution.y/u_resolution.x;
-		vec3 dir=vec3(uv*zoom,1.);
-		float time=u_time*speed+.25;
-
-		//mouse rotation
-		float a1=.5+u_mouse.x/u_resolution.x*.005;
-		float a2=.8+u_mouse.y/u_resolution.y*.005;
-		mat2 rot1=mat2(cos(a1),sin(a1),-sin(a1),cos(a1));
-		mat2 rot2=mat2(cos(a2),sin(a2),-sin(a2),cos(a2));
-		dir.xz*=rot1;
-		dir.xy*=rot2;
-		vec3 from=vec3(1.,.5,0.5);
-		from+=vec3(time*2.,time,-2.);
-		from.xz*=rot1;
-		from.xy*=rot2;
-
-		//volumetric rendering
-		float s=0.1,fade=1.;
-		vec3 v=vec3(0.);
-		for (int r=0; r<volsteps; r++) {
-			vec3 p=from+s*dir*.5;
-			p = abs(vec3(tile)-mod(p,vec3(tile*2.))); // tiling fold
-			float pa,a=pa=0.;
-			for (int i=0; i<iterations; i++) {
-				p=abs(p)/dot(p,p)-formuparam; // the magic formula
-				a+=abs(length(p)-pa); // absolute sum of average change
-				pa=length(p);
-			}
-			float dm=max(0.,darkmatter-a*a*.001); //dark matter
-			a*=a*a; // add contrast
-			if (r>6) fade*=1.-dm; // dark matter, don't render near
-			//v+=vec3(dm,dm*.5,0.);
-			v+=fade;
-			v+=vec3(s,s*s,s*s*s*s)*a*brightness*fade; // coloring based on distance
-			fade*=distfading; // distance fading
-			s+=stepsize;
-		}
-		v=mix(vec3(length(v)),v,saturation); //color adjust
-		gl_FragColor = vec4(v*.01,1.);
-
-	}
-  `}
 
 type TitleScene struct {
 	files []string
@@ -105,9 +25,15 @@ func (s *TitleScene) Preload() {
 		"title/PressStart.ttf",
 		"title/parsec.mp3",
 		"title/cursor.png",
+		"title/move.wav",
+		"ship/idle.png",
+		"title/earth.png",
+		"title/moon.png",
+		"title/stars.png",
 	}
 	common.AddShader(sShader)
 	common.AddShader(wShader)
+	common.AddShader(starShader)
 	for _, file := range s.files {
 		data, err := assets.Asset(file)
 		if err != nil {
@@ -137,17 +63,21 @@ func (s *TitleScene) Setup(u engo.Updater) {
 	var notrenderable *common.NotRenderable
 	w.AddSystemInterface(&common.RenderSystem{}, renderable, notrenderable)
 
+	var animatable *common.Animationable
+	var notanimatable *common.NotAnimationable
+	w.AddSystemInterface(&common.AnimationSystem{}, animatable, notanimatable)
+
 	var audioable *common.Audioable
 	var notaudioable *common.NotAudioable
 	w.AddSystemInterface(&common.AudioSystem{}, audioable, notaudioable)
 
 	w.AddSystem(&systems.FullScreenSystem{})
 	w.AddSystem(&systems.ExitSystem{})
-	w.AddSystem(&common.FPSSystem{Display: true})
 
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
+	curSys.ClickSoundURL = s.files[4]
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	var selectable *systems.SceneSwitchAble
@@ -163,18 +93,47 @@ func (s *TitleScene) Setup(u engo.Updater) {
 	bgmPlayer.Play()
 	w.AddEntity(&bgm)
 
-	bg := sprite{BasicEntity: ecs.NewBasic()}
-	bg.Drawable = pixelshader.PixelRegion{}
-	bg.SetShader(sShader)
+	click := audio{BasicEntity: ecs.NewBasic()}
+	clickPlayer, _ := common.LoadedPlayer(s.files[4])
+	click.AudioComponent = common.AudioComponent{Player: clickPlayer}
+	w.AddEntity(&click)
+
+	bg := animation{BasicEntity: ecs.NewBasic()}
+	bgSS := common.NewSpritesheetWithBorderFromFile(s.files[8], 340, 180, 1, 1)
+	bg.Drawable = bgSS.Drawable(0)
+	bg.Scale = engo.Point{X: 2.0, Y: 2.0}
+	bg.AnimationComponent = common.NewAnimationComponent(bgSS.Drawables(), 0.3)
+	bg.AddDefaultAnimation(&common.Animation{Name: "twinkle", Frames: []int{0, 1}})
 	w.AddEntity(&bg)
 
-	scene := sprite{BasicEntity: ecs.NewBasic()}
-	sceneTex, err := common.LoadedSprite(s.files[0])
+	earth := sprite{BasicEntity: ecs.NewBasic()}
+	earthTex, err := common.LoadedSprite(s.files[6])
 	if err != nil {
-		log.Fatalf("Title Scene Setup. %v texture was not found. \nError was: %v\n", s.files[0], err)
+		log.Fatalf("Title Scene Setup. %v texture was not found. \nError was: %v\n", s.files[6], err)
 	}
-	scene.RenderComponent.Drawable = sceneTex
-	w.AddEntity(&scene)
+	earth.RenderComponent.Drawable = earthTex
+	earth.SetZIndex(1)
+	w.AddEntity(&earth)
+
+	moon := animation{BasicEntity: ecs.NewBasic()}
+	moonSS := common.NewSpritesheetWithBorderFromFile(s.files[7], 64, 64, 1, 1)
+	moon.Drawable = moonSS.Drawable(0)
+	moon.Position = engo.Point{X: 460, Y: 20}
+	moon.Scale = engo.Point{X: 2, Y: 2}
+	moon.SetZIndex(1)
+	moon.AnimationComponent = common.NewAnimationComponent(moonSS.Drawables(), 0.6)
+	moon.AddDefaultAnimation(&common.Animation{Name: "float", Frames: []int{0, 1, 2, 3, 4, 5, 6}})
+	w.AddEntity(&moon)
+
+	ship := animation{BasicEntity: ecs.NewBasic()}
+	shipSS := common.NewSpritesheetWithBorderFromFile(s.files[5], 128, 64, 1, 1)
+	ship.Drawable = shipSS.Drawable(0)
+	ship.Position = engo.Point{X: 125, Y: 150}
+	ship.Scale = engo.Point{X: 4, Y: 4}
+	ship.SetZIndex(2)
+	ship.AnimationComponent = common.NewAnimationComponent(shipSS.Drawables(), 0.3)
+	ship.AddDefaultAnimation(&common.Animation{Name: "idle", Frames: []int{0, 1, 2, 3, 4, 5, 6}})
+	w.AddEntity(&ship)
 
 	selFont := &common.Font{
 		Size: 20,
@@ -188,7 +147,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 		Text: "Space Camp!",
 		Font: selFont,
 	}
-	titleText.SetZIndex(1)
+	titleText.SetZIndex(2)
 	titleText.SetCenter(engo.Point{X: 10, Y: 25})
 	titleText.Scale = engo.Point{X: 1.5, Y: 1.5}
 	w.AddEntity(&titleText)
@@ -198,7 +157,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 		Text: "start",
 		Font: selFont,
 	}
-	startText.SetZIndex(1)
+	startText.SetZIndex(2)
 	startText.SetCenter(engo.Point{X: 66, Y: 75})
 	startText.Selected = true
 	startText.To = "New Game Scene"
@@ -210,7 +169,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 		Text: "options",
 		Font: selFont,
 	}
-	optionsText.SetZIndex(1)
+	optionsText.SetZIndex(2)
 	optionsText.SetCenter(engo.Point{X: 66, Y: 100})
 	w.AddEntity(&optionsText)
 
@@ -219,7 +178,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 		Text: "credits",
 		Font: selFont,
 	}
-	creditsText.SetZIndex(1)
+	creditsText.SetZIndex(2)
 	creditsText.SetCenter(engo.Point{X: 66, Y: 125})
 	w.AddEntity(&creditsText)
 
@@ -228,7 +187,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 		Text: "press F4 to enable full screen!",
 		Font: selFont,
 	}
-	fsText.SetZIndex(1)
+	fsText.SetZIndex(2)
 	fsText.SetCenter(engo.Point{X: 25, Y: 150})
 	fsText.Scale = engo.Point{X: 0.5, Y: 0.5}
 	w.AddEntity(&fsText)

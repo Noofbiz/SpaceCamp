@@ -33,8 +33,8 @@ type AcceptSystem struct {
 
 	curSys *CursorSystem
 
-	latestSelection ecs.BasicEntity
-	selections      []ecs.Identifier
+	latestSelection *ecs.BasicEntity
+	selections      []*ecs.BasicEntity
 }
 
 func (s *AcceptSystem) New(w *ecs.World) {
@@ -78,7 +78,7 @@ func (s *AcceptSystem) New(w *ecs.World) {
 	s.curSys.Remove(s.no.BasicEntity)
 }
 
-func (s *AcceptSystem) Add(i ecs.BasicEntity, job string) {
+func (s *AcceptSystem) Add(i *ecs.BasicEntity, job string) {
 	s.unpause()
 	s.job = job
 	s.latestSelection = i
@@ -187,7 +187,7 @@ func (s *AcceptSystem) Update(dt float32) {
 				engo.Mailbox.Dispatch(JobSelectUnpauseMessage{IDs: s.selections})
 			case JobSelectPhaseThree:
 				msgs := []string{
-					"Can't go wrong even with a third string",
+					"Can't go wrong with",
 					s.job,
 					"Right?",
 					"And their name is?",
@@ -225,7 +225,7 @@ func (s *AcceptSystem) Update(dt float32) {
 			}
 		}
 		if engo.Input.Button("B").JustPressed() {
-			s.Remove(s.latestSelection)
+			s.Remove(*s.latestSelection)
 			s.back()
 		}
 	}
@@ -234,11 +234,11 @@ func (s *AcceptSystem) Update(dt float32) {
 			return
 		}
 		if engo.Input.Button("A").JustPressed() {
-			s.Remove(s.latestSelection)
+			s.Remove(*s.latestSelection)
 			s.back()
 		}
 		if engo.Input.Button("B").JustPressed() {
-			s.Remove(s.latestSelection)
+			s.Remove(*s.latestSelection)
 			s.back()
 		}
 	}

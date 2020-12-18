@@ -168,7 +168,7 @@ func (s *ShopPurchaseSystem) New(w *ecs.World) {
 				})
 			}
 			engo.Mailbox.Dispatch(LogFinishedSetSceneMessage{
-				To:       "Takeoff Scene",
+				To:       "Take Off Scene",
 				NewWorld: true,
 			})
 			return

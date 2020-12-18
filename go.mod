@@ -2,8 +2,6 @@ module github.com/Noofbiz/SpaceCamp
 
 go 1.15
 
-replace github.com/Noofbiz/pixelshader => /Volumes/noofiles/git/pixelShader
-
 require (
 	github.com/EngoEngine/ecs v1.0.5
 	github.com/EngoEngine/engo v1.0.6-0.20201121215430-a0f46d6f3cec

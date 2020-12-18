@@ -13,7 +13,7 @@ func (JobSelectPauseMessage) Type() string {
 }
 
 type JobSelectUnpauseMessage struct {
-	IDs []ecs.Identifier
+	IDs []*ecs.BasicEntity
 }
 
 func (JobSelectUnpauseMessage) Type() string {
@@ -88,27 +88,17 @@ func (s *JobSelectSystem) pause() {
 	}
 }
 
-func (s *JobSelectSystem) unpause(ids []ecs.Identifier) {
+func (s *JobSelectSystem) unpause(ids []*ecs.BasicEntity) {
 	s.paused = false
 	s.skipNextFrame = true
 	s.showAll()
-	j := 0
-	for i, title := range s.titles {
-		found := false
-		for _, id := range ids {
-			if id.ID() == title.ID() {
-				found = true
-				if i == j {
-					j++
-				}
-			}
-		}
-		if found {
-			continue
-		}
+	for _, title := range s.titles {
 		s.curSys.Add(&title.BasicEntity, &title.SpaceComponent, &title.RenderComponent, &title.CursorComponent)
 	}
-	engo.Mailbox.Dispatch(CursorSetMessage{ID: s.titles[j]})
+	for _, id := range ids {
+		s.curSys.Remove(*id)
+	}
+	engo.Mailbox.Dispatch(CursorSetMessage{ID: s.titles[0]})
 }
 
 func (s *JobSelectSystem) New(w *ecs.World) {
@@ -352,8 +342,7 @@ func (s *JobSelectSystem) Update(dt float32) {
 				}
 				s.pause()
 				msgs := []string{
-					"So you're a",
-					e.Job,
+					"So a " + e.Job,
 					"Is that correct?",
 				}
 				for _, msg := range msgs {
@@ -363,7 +352,7 @@ func (s *JobSelectSystem) Update(dt float32) {
 						Clip: s.LogSnd,
 					})
 				}
-				s.acceptSys.Add(*e.BasicEntity, e.Job)
+				s.acceptSys.Add(e.BasicEntity, e.Job)
 			}
 		} else {
 			if e.shown {

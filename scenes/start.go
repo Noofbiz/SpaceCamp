@@ -11,7 +11,6 @@ import (
 
 	"github.com/Noofbiz/SpaceCamp/assets"
 	"github.com/Noofbiz/SpaceCamp/systems"
-	"github.com/Noofbiz/pixelshader"
 )
 
 type NewGameScene struct {
@@ -43,6 +42,8 @@ func (s *NewGameScene) Preload() {
 		"start/co.png",
 		"start/dl.png",
 		"start/sp.png",
+		"title/move.wav",
+		"title/stars.png",
 	}
 	for _, file := range s.files {
 		data, err := assets.Asset(file)
@@ -72,6 +73,10 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	var notrenderable *common.NotRenderable
 	w.AddSystemInterface(&common.RenderSystem{}, renderable, notrenderable)
 
+	var animatable *common.Animationable
+	var notanimatable *common.NotAnimationable
+	w.AddSystemInterface(&common.AnimationSystem{}, animatable, notanimatable)
+
 	var audioable *common.Audioable
 	var notaudioable *common.NotAudioable
 	w.AddSystemInterface(&common.AudioSystem{}, audioable, notaudioable)
@@ -91,6 +96,7 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	var cursorable *systems.CursorAble
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
+	curSys.ClickSoundURL = s.files[21]
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	selFont := &common.Font{
@@ -118,21 +124,30 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	bgmPlayer, _ := common.LoadedPlayer(s.files[2])
 	bgm.AudioComponent = common.AudioComponent{Player: bgmPlayer}
 	bgmPlayer.Repeat = true
+	bgmPlayer.SetVolume(0.5)
 	bgmPlayer.Play()
 	w.AddEntity(&bgm)
+
+	click := audio{BasicEntity: ecs.NewBasic()}
+	clickPlayer, _ := common.LoadedPlayer(s.files[21])
+	click.AudioComponent = common.AudioComponent{Player: clickPlayer}
+	w.AddEntity(&click)
 
 	logSnd := audio{BasicEntity: ecs.NewBasic()}
 	logPlayer, _ := common.LoadedPlayer(s.files[5])
 	logSnd.AudioComponent = common.AudioComponent{Player: logPlayer}
-	logSnd.AudioComponent.Player.SetVolume(0.25)
+	logSnd.AudioComponent.Player.SetVolume(0.15)
 	w.AddEntity(&logSnd)
 	jobSys.LogSnd = logPlayer
 	acceptSys.LogSnd = logPlayer
 	nameSys.LogSnd = logPlayer
 
-	bg := sprite{BasicEntity: ecs.NewBasic()}
-	bg.Drawable = pixelshader.PixelRegion{}
-	bg.SetShader(sShader)
+	bg := animation{BasicEntity: ecs.NewBasic()}
+	bgSS := common.NewSpritesheetWithBorderFromFile(s.files[22], 340, 180, 1, 1)
+	bg.Drawable = bgSS.Drawable(0)
+	bg.Scale = engo.Point{X: 2.0, Y: 2.0}
+	bg.AnimationComponent = common.NewAnimationComponent(bgSS.Drawables(), 0.3)
+	bg.AddDefaultAnimation(&common.Animation{Name: "twinkle", Frames: []int{0, 1}})
 	w.AddEntity(&bg)
 
 	chef := character{BasicEntity: ecs.NewBasic()}
@@ -190,11 +205,18 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	w.AddEntity(&exo)
 
 	msgs := []string{
-		"You've been selected to lead",
-		"OriginX's first mission to Mars!",
 		"CONGRATULATIONS!",
-		"Um...",
-		"What was your job again?",
+		"Due to recent law changes ",
+		"and corporate mumbo-jumbo",
+		"First billionaire to",
+		"fund a vanity trip to mars wins it!",
+		"The whole planet.",
+		"Since you're a disposable",
+		"...er, dependable! unpaid intern",
+		"and you met your metrics this month!",
+		"OriginX has selected YOU to lead our",
+		"FIRST MISSION TO MARS!",
+		"What was your job around here?",
 	}
 
 	for _, msg := range msgs {

@@ -197,7 +197,7 @@ func (s *NameSelectSystem) confirm() {
 			Clip: s.LogSnd,
 		})
 	}
-	s.acceptSys.Add(ecs.NewBasic(), s.name)
+	s.acceptSys.Add(s.box.GetBasicEntity(), s.name)
 }
 
 func (s *NameSelectSystem) setRandomName() {
@@ -268,6 +268,7 @@ func (s *NameSelectSystem) pause() {
 	s.nameText.Hidden = true
 	for _, sel := range s.alphabet {
 		sel.Hidden = true
+		s.curSys.Remove(sel.BasicEntity)
 	}
 	engo.Mailbox.Dispatch(CursorJumpSetMessage{Jump: 1})
 }

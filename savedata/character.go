@@ -1,7 +1,9 @@
 package savedata
 
 type Character struct {
-	Job, Name string
+	Job, Name     string
+	MaxHP, MaxMP  int
+	Atk, Def, Spd int
 }
 
 type Ship struct {
