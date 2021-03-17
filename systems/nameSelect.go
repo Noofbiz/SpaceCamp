@@ -74,7 +74,7 @@ func (s *NameSelectSystem) New(w *ecs.World) {
 	}
 	s.nameText.SetZIndex(3)
 	s.nameText.SetCenter(engo.Point{X: 208, Y: 85})
-	s.nameText.Scale = engo.Point{X: 0.25, Y: 0.25}
+	s.nameText.Scale = engo.Point{X: 0.4, Y: 0.4}
 	s.nameText.Hidden = true
 	w.AddEntity(&s.nameText)
 
@@ -97,7 +97,7 @@ func (s *NameSelectSystem) New(w *ecs.World) {
 				Text: char,
 				Font: s.Fnt,
 			}
-			ltr.Scale = engo.Point{X: 0.25, Y: 0.25}
+			ltr.Scale = engo.Point{X: 0.4, Y: 0.4}
 		}
 		ltr.SetCenter(engo.Point{X: 220 + float32(col)*40, Y: 125 + float32(row)*40})
 		ltr.SetZIndex(2)

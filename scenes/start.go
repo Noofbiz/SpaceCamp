@@ -100,7 +100,7 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	selFont := &common.Font{
-		Size: 64,
+		Size: 48,
 		FG:   color.Black,
 		URL:  s.files[0],
 	}

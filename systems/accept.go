@@ -60,7 +60,7 @@ func (s *AcceptSystem) New(w *ecs.World) {
 	}
 	s.yes.SetZIndex(2)
 	s.yes.SetCenter(engo.Point{X: 105, Y: 160})
-	s.yes.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.yes.Scale = engo.Point{X: 0.7, Y: 0.7}
 	s.yes.Hidden = true
 	w.AddEntity(&s.yes)
 	s.curSys.Remove(s.yes.BasicEntity)
@@ -72,7 +72,7 @@ func (s *AcceptSystem) New(w *ecs.World) {
 	}
 	s.no.SetZIndex(2)
 	s.no.SetCenter(engo.Point{X: 400, Y: 160})
-	s.no.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.no.Scale = engo.Point{X: 0.7, Y: 0.7}
 	s.no.Hidden = true
 	w.AddEntity(&s.no)
 	s.curSys.Remove(s.no.BasicEntity)

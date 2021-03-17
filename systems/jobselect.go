@@ -151,7 +151,7 @@ func (s *JobSelectSystem) New(w *ecs.World) {
 	}
 	s.atkText.SetZIndex(2)
 	s.atkText.SetCenter(engo.Point{X: 240, Y: 100})
-	s.atkText.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.atkText.Scale = engo.Point{X: 0.7, Y: 0.7}
 	w.AddEntity(&s.atkText)
 
 	s.defText = sprite{BasicEntity: ecs.NewBasic()}
@@ -161,7 +161,7 @@ func (s *JobSelectSystem) New(w *ecs.World) {
 	}
 	s.defText.SetZIndex(2)
 	s.defText.SetCenter(engo.Point{X: 240, Y: 160})
-	s.defText.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.defText.Scale = engo.Point{X: 0.7, Y: 0.7}
 	w.AddEntity(&s.defText)
 
 	s.spdText = sprite{BasicEntity: ecs.NewBasic()}
@@ -171,7 +171,7 @@ func (s *JobSelectSystem) New(w *ecs.World) {
 	}
 	s.spdText.SetZIndex(2)
 	s.spdText.SetCenter(engo.Point{X: 240, Y: 220})
-	s.spdText.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.spdText.Scale = engo.Point{X: 0.7, Y: 0.7}
 	w.AddEntity(&s.spdText)
 
 	s.spcText = sprite{BasicEntity: ecs.NewBasic()}
@@ -181,7 +181,7 @@ func (s *JobSelectSystem) New(w *ecs.World) {
 	}
 	s.spcText.SetZIndex(2)
 	s.spcText.SetCenter(engo.Point{X: 240, Y: 285})
-	s.spcText.Scale = engo.Point{X: 0.5, Y: 0.5}
+	s.spcText.Scale = engo.Point{X: 0.7, Y: 0.7}
 	w.AddEntity(&s.spcText)
 
 	s.atkIcon0 = sprite{BasicEntity: ecs.NewBasic()}
@@ -291,7 +291,7 @@ func (s *JobSelectSystem) Add(basic *ecs.BasicEntity, sel *JobSelectComponent) {
 	}
 	e.SetZIndex(2)
 	e.SetCenter(s.positions[len(s.entities)])
-	e.Scale = engo.Point{X: 0.25, Y: 0.25}
+	e.Scale = engo.Point{X: 0.35, Y: 0.35}
 	if len(s.titles) == 0 {
 		e.Selected = true
 	}

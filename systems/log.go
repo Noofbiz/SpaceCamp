@@ -83,7 +83,7 @@ func (s *CombatLogSystem) New(w *ecs.World) {
 		Font: logFont,
 		Text: "",
 	}
-	s.line1.Scale = engo.Point{X: 0.2, Y: 0.2}
+	s.line1.Scale = engo.Point{X: 0.35, Y: 0.35}
 	s.line1.SetZIndex(2)
 	s.line1.Position = engo.Point{X: 99, Y: 54}
 	w.AddEntity(&s.line1)
@@ -93,7 +93,7 @@ func (s *CombatLogSystem) New(w *ecs.World) {
 		Font: logFont,
 		Text: "",
 	}
-	s.line2.Scale = engo.Point{X: 0.2, Y: 0.2}
+	s.line2.Scale = engo.Point{X: 0.35, Y: 0.35}
 	s.line2.SetZIndex(2)
 	s.line2.Position = engo.Point{X: 99, Y: 34}
 	w.AddEntity(&s.line2)
@@ -103,7 +103,7 @@ func (s *CombatLogSystem) New(w *ecs.World) {
 		Font: logFont,
 		Text: "",
 	}
-	s.line3.Scale = engo.Point{X: 0.2, Y: 0.2}
+	s.line3.Scale = engo.Point{X: 0.35, Y: 0.35}
 	s.line3.SetZIndex(2)
 	s.line3.Position = engo.Point{X: 99, Y: 14}
 	w.AddEntity(&s.line3)
