@@ -88,6 +88,7 @@ func (s *ShopScene) Setup(u engo.Updater) {
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
 	curSys.ClickSoundURL = s.files[9]
+	curSys.CursorURL = "title/cursor.png"
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	w.AddSystem(&systems.ShopKeeperSystem{KeeperURL: s.files[8]})

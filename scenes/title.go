@@ -78,6 +78,7 @@ func (s *TitleScene) Setup(u engo.Updater) {
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
 	curSys.ClickSoundURL = s.files[4]
+	curSys.CursorURL = "title/cursor.png"
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	var selectable *systems.SceneSwitchAble

@@ -97,6 +97,7 @@ func (s *NewGameScene) Setup(u engo.Updater) {
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
 	curSys.ClickSoundURL = s.files[21]
+	curSys.CursorURL = "title/cursor.png"
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	selFont := &common.Font{

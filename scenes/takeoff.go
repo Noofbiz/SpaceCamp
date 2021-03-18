@@ -83,6 +83,7 @@ func (s *TakeOffScene) Setup(u engo.Updater) {
 	var notcursorable *systems.NotCursorAble
 	var curSys systems.CursorSystem
 	curSys.ClickSoundURL = s.files[2]
+	curSys.CursorURL = "title/cursor.png"
 	w.AddSystemInterface(&curSys, cursorable, notcursorable)
 
 	common.SetBackground(color.RGBA{R: 0x43, G: 0x46, B: 0x4b, A: 0xff})
