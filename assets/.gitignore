@@ -1,4 +1,5 @@
 *
 !assets.go
+!bindata.go
 !ATTRIBUTIONS.md
 !.gitignore
