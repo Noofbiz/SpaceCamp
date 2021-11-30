@@ -16,3 +16,9 @@
 
 # Output for test save files etc
 outtahere/
+
+# Scenes will be in a separate repo to avoid spoilers and stuff
+scenes/
+
+# Assets are available upon request but too big to host on github
+assets/
